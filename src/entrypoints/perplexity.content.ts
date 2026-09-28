@@ -2,7 +2,7 @@ import {
   attachImagesToEditor,
   clickSendWhenReady,
   setContentEditableText,
-  waitForElement,
+  waitForFirstMatchingElement,
   type ImagePayload
 } from "~/contents/lib/dom-helpers"
 import { createResponseCapture } from "~/contents/lib/response-observer"
@@ -33,19 +33,14 @@ const { ensureObserver, setActiveSession } = createResponseCapture(
 )
 
 const findPerplexityInput = async (): Promise<HTMLElement | null> => {
-  const direct =
-    (await waitForElement<HTMLElement>(
+  const direct = await waitForFirstMatchingElement<HTMLElement>(
+    [
       "div#ask-input[contenteditable='true']",
-      3000
-    )) ??
-    (await waitForElement<HTMLElement>(
       "div[data-lexical-editor='true'][contenteditable='true']",
-      2000
-    )) ??
-    (await waitForElement<HTMLElement>(
-      "div[contenteditable='true']",
-      2000
-    ))
+      "div[contenteditable='true']"
+    ],
+    3000
+  )
   if (direct) {
     return direct
   }
@@ -89,9 +84,7 @@ const fillPerplexityInput = async (
 ) => {
   setActiveSession(sessionId)
 
-  const input =
-    (await findPerplexityInput()) ??
-    (await waitForElement<HTMLElement>("[contenteditable='true']", 5000))
+  const input = await findPerplexityInput()
 
   if (!input) {
     return

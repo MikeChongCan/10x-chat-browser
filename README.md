@@ -54,8 +54,9 @@ Skip copying and pasting prompts between multiple browser tabs. Compare response
   - **Individual Tabs**: Traditional multi-tab workflow.
 - 🔄 **Continuous Conversations**: Reuse existing conversation tabs to preserve multi-turn context across follow-ups without creating fresh threads each time.
 - 📊 **Integrated Summary**: Aggregate and synthesize answers from multiple models into an executive overview.
+- 📝 **Web & AI Chat Markdown Clipper**: Clip any webpage or full AI chat (ChatGPT, Claude, Gemini, Grok, Perplexity) directly into a clean, readable Markdown file (`.md`) with YAML frontmatter. Save straight to disk with one click, right-click context menu, or keyboard shortcut (`Alt+Shift+M`).
 - 🌐 **Internationalization (i18n)**: Fully localized in English, Spanish (Español), German (Deutsch), French (Français), Simplified Chinese (简体中文), and Traditional Chinese (繁體中文).
-- ⌨️ **Keyboard Shortcuts**: Quick submit with `Cmd+Enter` (macOS) / `Ctrl+Enter` (Windows/Linux).
+- ⌨️ **Keyboard Shortcuts**: Quick submit with `Cmd+Enter` (macOS) / `Ctrl+Enter` (Windows/Linux), and quick clip with `Alt+Shift+M`.
 
 ---
 

@@ -30,6 +30,47 @@ export const waitForElement = <T extends Element = Element>(
 }
 
 /**
+ * Wait for any element matching an ordered list of candidate selectors.
+ * Selectors are evaluated in priority order on each check / mutation,
+ * ensuring high-priority specific selectors win over broad fallbacks,
+ * while sharing a single timeout without sequential delays.
+ */
+export const waitForFirstMatchingElement = <T extends Element = Element>(
+  selectors: string[],
+  timeout = DEFAULT_WAIT_TIMEOUT_MS
+): Promise<T | null> => {
+  return new Promise((resolve) => {
+    const findMatch = (): T | null => {
+      for (const sel of selectors) {
+        const found = document.querySelector<T>(sel)
+        if (found) return found
+      }
+      return null
+    }
+
+    const immediate = findMatch()
+    if (immediate) {
+      resolve(immediate)
+      return
+    }
+
+    const observer = new MutationObserver(() => {
+      const match = findMatch()
+      if (match) {
+        observer.disconnect()
+        resolve(match)
+      }
+    })
+
+    observer.observe(document.body, { childList: true, subtree: true })
+    setTimeout(() => {
+      observer.disconnect()
+      resolve(null)
+    }, timeout)
+  })
+}
+
+/**
  * Set a textarea's value bypassing React's synthetic event system
  * by calling the native setter directly.
  */
@@ -95,8 +136,15 @@ export const setContentEditableText = (
   // Lexical and ProseMirror listen for InputEvent with `inputType`,
   // so we dispatch a realistic event even when execCommand fails
   // (unfocused / background tabs).
-  element.textContent = ""
-  element.textContent = value
+  if (element.classList.contains("ProseMirror")) {
+    element.innerHTML = ""
+    const p = document.createElement("p")
+    p.textContent = value
+    element.appendChild(p)
+  } else {
+    element.textContent = ""
+    element.textContent = value
+  }
 
   // Move caret to end
   try {
@@ -112,7 +160,20 @@ export const setContentEditableText = (
     // getSelection can throw on background tabs — benign
   }
 
-  // Dispatch InputEvent with `inputType` so rich editors detect the change
+  // Dispatch beforeinput and input events so rich editors detect the change
+  try {
+    element.dispatchEvent(
+      new InputEvent("beforeinput", {
+        bubbles: true,
+        cancelable: true,
+        inputType: "insertText",
+        data: value
+      })
+    )
+  } catch {
+    // beforeinput not supported in some older environments — benign
+  }
+
   try {
     element.dispatchEvent(
       new InputEvent("input", {
@@ -261,6 +322,8 @@ export const dataUrlToFile = (
 const COMPOSER_CONTAINER_SELECTORS = [
   "form",
   "fieldset",
+  "[data-composer-body]",
+  "[data-composer-surface]",
   "[data-ask-input-container]",
   "[class*='composer' i]",
   "[class*='input-area' i]",

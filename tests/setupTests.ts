@@ -54,6 +54,25 @@ global.chrome = {
       getInfo: jest.fn(),
     },
   },
+  downloads: {
+    download: jest.fn().mockResolvedValue(1),
+  },
+  scripting: {
+    executeScript: jest.fn().mockResolvedValue([]),
+  },
+  contextMenus: {
+    create: jest.fn(),
+    onClicked: {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+  },
+  commands: {
+    onCommand: {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+  },
 } as any
 
 // Reset all mocks before each test

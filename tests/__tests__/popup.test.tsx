@@ -188,6 +188,10 @@ describe("IndexPopup", () => {
         name: "launchQueries",
         body: { query: "Test query", closePreviousTabs: false }
       })
+
+      await waitFor(() => {
+        expect(mockWindowClose).toHaveBeenCalled()
+      })
     })
 
     it("should submit query with keyboard shortcut (Windows)", async () => {
@@ -207,6 +211,10 @@ describe("IndexPopup", () => {
       expect(sendMock).toHaveBeenCalledWith({
         name: "launchQueries",
         body: { query: "Test query", closePreviousTabs: false }
+      })
+
+      await waitFor(() => {
+        expect(mockWindowClose).toHaveBeenCalled()
       })
     })
 
@@ -516,6 +524,39 @@ describe("IndexPopup", () => {
             }
           ]
         }
+      })
+    })
+  })
+
+  describe("Markdown clipping", () => {
+    it("calls clipActiveTab when the clip button is clicked and displays success message", async () => {
+      sendMock.mockResolvedValueOnce({ ok: true, fileName: "test.md" })
+      render(<IndexPopup />)
+
+      const clipButton = screen.getByTitle("Save to Markdown (.md)")
+      expect(clipButton).toBeInTheDocument()
+
+      await user.click(clipButton)
+
+      expect(sendMock).toHaveBeenCalledWith({
+        name: "clipActiveTab",
+        body: {}
+      })
+
+      await waitFor(() => {
+        expect(screen.getByText("Saved to Markdown!")).toBeInTheDocument()
+      })
+    })
+
+    it("displays error message if clipActiveTab fails", async () => {
+      sendMock.mockResolvedValueOnce({ ok: false, error: "Content script unavailable" })
+      render(<IndexPopup />)
+
+      const clipButton = screen.getByTitle("Save to Markdown (.md)")
+      await user.click(clipButton)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to clip page: Content script unavailable/)).toBeInTheDocument()
       })
     })
   })

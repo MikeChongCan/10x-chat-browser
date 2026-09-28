@@ -2,7 +2,7 @@ import {
   attachImagesToEditor,
   clickSendWhenReady,
   setContentEditableText,
-  waitForElement,
+  waitForFirstMatchingElement,
   type ImagePayload
 } from "~/contents/lib/dom-helpers"
 import { createResponseCapture } from "~/contents/lib/response-observer"
@@ -24,19 +24,14 @@ const { ensureObserver, setActiveSession } = createResponseCapture(
 )
 
 const findGrokInput = async (): Promise<HTMLElement | null> => {
-  const direct =
-    (await waitForElement<HTMLElement>(
+  const direct = await waitForFirstMatchingElement<HTMLElement>(
+    [
       "div.tiptap.ProseMirror[contenteditable='true']",
-      3000
-    )) ??
-    (await waitForElement<HTMLElement>(
       "div[contenteditable='true'].ProseMirror",
-      2000
-    )) ??
-    (await waitForElement<HTMLElement>(
-      "div[contenteditable='true']",
-      2000
-    ))
+      "div[contenteditable='true']"
+    ],
+    3000
+  )
   if (direct) {
     return direct
   }
@@ -76,9 +71,7 @@ const fillGrokInput = async (
 ) => {
   setActiveSession(sessionId)
 
-  const input =
-    (await findGrokInput()) ??
-    (await waitForElement<HTMLElement>("[contenteditable='true']", 5000))
+  const input = await findGrokInput()
 
   if (!input) {
     return

@@ -3,6 +3,7 @@ import {
   type ServiceType
 } from "../background/integration-session"
 import handleLaunchQueries from "../background/messages/launchQueries"
+import { clipActiveTabHandler } from "../background/messages/clipActiveTab"
 
 const MANAGED_KEY = "extensionManagedIds"
 const SERVICE_TAB_KEY = "serviceTabMap"
@@ -36,6 +37,34 @@ const isIntegrationMessage = (message: unknown): message is IntegrationMessage =
 export default defineBackground(() => {
   console.log("10x Chat Browser background service worker initialized.")
 
+  chrome.runtime.onInstalled.addListener(() => {
+    try {
+      chrome.contextMenus?.create({
+        id: "clip-to-markdown",
+        title: chrome.i18n?.getMessage("clipToMarkdown") || "Save to Markdown (.md)",
+        contexts: ["page", "selection"]
+      })
+    } catch (e) {
+      console.warn("Could not register context menu:", e)
+    }
+  })
+
+  chrome.contextMenus?.onClicked.addListener((info) => {
+    if (info.menuItemId === "clip-to-markdown") {
+      clipActiveTabHandler().catch((error) => {
+        console.error("Background: context menu clip error:", error)
+      })
+    }
+  })
+
+  chrome.commands?.onCommand.addListener((command) => {
+    if (command === "clip-to-markdown") {
+      clipActiveTabHandler().catch((error) => {
+        console.error("Background: command clip error:", error)
+      })
+    }
+  })
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message?.name === "launchQueries") {
       handleLaunchQueries(
@@ -49,6 +78,16 @@ export default defineBackground(() => {
         console.error("Background: launchQueries error:", error)
         sendResponse({ status: "error", message: error?.message || String(error) })
       })
+      return true
+    }
+
+    if (message?.name === "clipActiveTab") {
+      clipActiveTabHandler()
+        .then((res) => sendResponse(res))
+        .catch((error) => {
+          console.error("Background: clipActiveTab error:", error)
+          sendResponse({ ok: false, error: error?.message || String(error) })
+        })
       return true
     }
 

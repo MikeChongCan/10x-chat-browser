@@ -5,6 +5,7 @@ import {
   setContentEditableText,
   setNativeValue,
   waitForElement,
+  waitForFirstMatchingElement,
   type ImagePayload
 } from "~/contents/lib/dom-helpers"
 import { createResponseCapture } from "~/contents/lib/response-observer"
@@ -14,10 +15,22 @@ const DEFAULT_WAIT_TIMEOUT_MS = 30_000
 const RESPONSE_SELECTORS = [
   "[data-message-author-role='assistant']",
   "article[data-testid='conversation-turn'] div[data-testid='markdown']",
-  "div[data-testid='assistant-turn']"
+  "article[data-testid^='conversation-turn'] [data-message-author-role='assistant']",
+  "div[data-testid='assistant-turn']",
+  "div[data-message-author-role='assistant'] .markdown",
+  "[data-testid^='conversation-turn-'] [data-message-author-role='assistant']",
+  ".agent-turn [data-message-author-role='assistant']"
 ]
 
-const SEND_BUTTON_SELECTORS = ["button[data-testid='send-button']"]
+const SEND_BUTTON_SELECTORS = [
+  "button[data-testid='send-button']",
+  "button[type='submit']",
+  "button[aria-label='Send']",
+  "button[aria-label='Send prompt']",
+  "button[aria-label='Send message']",
+  "button[aria-label*='Send' i]",
+  "button[aria-label*='发送' i]"
+]
 
 const { ensureObserver, setActiveSession } = createResponseCapture(
   "chatgpt",
@@ -50,6 +63,19 @@ const waitForElementIn = <T extends Element>(
   })
 }
 
+const CHATGPT_EDITOR_SELECTORS = [
+  "div.ProseMirror[contenteditable='true']",
+  "div#prompt-textarea[contenteditable='true'].ProseMirror",
+  "div#prompt-textarea[contenteditable='true']",
+  "[contenteditable='true'].ProseMirror#prompt-textarea",
+  "div[data-composer-markdown][contenteditable='true']",
+  "div[role='textbox'][contenteditable='true']",
+  "[data-composer-body] [contenteditable='true']",
+  "form [contenteditable='true']",
+  "form textarea",
+  "textarea"
+]
+
 const fillChatgptInput = async (
   prompt: string,
   sessionId?: string,
@@ -58,20 +84,9 @@ const fillChatgptInput = async (
 ) => {
   setActiveSession(sessionId)
 
-  const editor =
-    (await waitForElement(
-      "div#prompt-textarea[contenteditable='true'].ProseMirror"
-    )) ??
-    (await waitForElement("div#prompt-textarea[contenteditable='true']")) ??
-    (await waitForElement(
-      "[contenteditable='true'].ProseMirror#prompt-textarea"
-    )) ??
-    (await waitForElementIn<HTMLElement>(
-      document,
-      "form [contenteditable='true']"
-    )) ??
-    (await waitForElementIn<HTMLTextAreaElement>(document, "form textarea")) ??
-    (await waitForElement("textarea"))
+  const editor = await waitForFirstMatchingElement<HTMLElement>(
+    CHATGPT_EDITOR_SELECTORS
+  )
 
   if (!editor) {
     return
@@ -95,9 +110,11 @@ const fillChatgptInput = async (
   }
 
   if (autoSend) {
-    const container = (editor.closest("form") ?? document) as
-      | Document
-      | Element
+    const container = (editor.closest("form") ??
+      editor.closest("[data-composer-body]") ??
+      editor.closest("[data-composer-surface]") ??
+      editor.closest("[class*='composer']") ??
+      document) as Document | Element
     await clickSendWhenReady(container, editor, SEND_BUTTON_SELECTORS)
   }
 }

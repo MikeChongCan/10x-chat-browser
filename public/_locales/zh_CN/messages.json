@@ -324,5 +324,21 @@
   "imageReadFailed": {
     "message": "部分图片无法读取，已跳过",
     "description": "Warning when one or more images failed to load"
+  },
+  "clipToMarkdown": {
+    "message": "保存为 Markdown (.md)",
+    "description": "Button to clip active tab content to Markdown file"
+  },
+  "clipping": {
+    "message": "正在保存...",
+    "description": "Status when clipping is in progress"
+  },
+  "clippedSuccess": {
+    "message": "已成功保存为 Markdown！",
+    "description": "Status when markdown file is successfully saved"
+  },
+  "clipError": {
+    "message": "保存页面失败",
+    "description": "Status when clipping fails"
   }
 }

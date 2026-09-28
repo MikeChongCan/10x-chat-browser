@@ -324,5 +324,21 @@
   "imageReadFailed": {
     "message": "Einige Bilder konnten nicht gelesen werden und wurden übersprungen",
     "description": "Warning when one or more images failed to load"
+  },
+  "clipToMarkdown": {
+    "message": "Als Markdown speichern (.md)",
+    "description": "Button to clip active tab content to Markdown file"
+  },
+  "clipping": {
+    "message": "Speichern...",
+    "description": "Status when clipping is in progress"
+  },
+  "clippedSuccess": {
+    "message": "Als Markdown-Datei gespeichert!",
+    "description": "Status when markdown file is successfully saved"
+  },
+  "clipError": {
+    "message": "Fehler beim Speichern der Seite",
+    "description": "Status when clipping fails"
   }
 }

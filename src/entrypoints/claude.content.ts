@@ -2,7 +2,7 @@ import {
   attachImagesToEditor,
   clickSendWhenReady,
   setContentEditableText,
-  waitForElement,
+  waitForFirstMatchingElement,
   type ImagePayload
 } from "~/contents/lib/dom-helpers"
 import { createResponseCapture } from "~/contents/lib/response-observer"
@@ -31,10 +31,10 @@ const fillClaudeInput = async (
 ) => {
   setActiveSession(sessionId)
 
-  const editor =
-    (await waitForElement<HTMLElement>(
-      "div.ProseMirror[contenteditable='true']"
-    )) ?? (await waitForElement<HTMLElement>("div[contenteditable='true']"))
+  const editor = await waitForFirstMatchingElement<HTMLElement>([
+    "div.ProseMirror[contenteditable='true']",
+    "div[contenteditable='true']"
+  ])
   if (!editor) {
     return
   }

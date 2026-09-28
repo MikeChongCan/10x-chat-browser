@@ -15,7 +15,9 @@ import {
   X,
   Paperclip,
   Image as ImageIcon,
-  Trash
+  Trash,
+  FileText,
+  Check
 } from "@phosphor-icons/react"
 import "./style.css"
 
@@ -51,6 +53,9 @@ function IndexPopup() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [notice, setNotice] = useState("")
+  const [noticeType, setNoticeType] = useState<"error" | "success">("error")
+  const [isClipping, setIsClipping] = useState(false)
+  const [clipSuccess, setClipSuccess] = useState(false)
   const [closePreviousTabs, setClosePreviousTabs] = useState(false)
   const [continuousMode, setContinuousMode] = useState(false)
   const [integrationMode, setIntegrationMode] = useState(false)
@@ -113,7 +118,10 @@ function IndexPopup() {
 
   useEffect(() => {
     if (!notice) return
-    const timer = setTimeout(() => setNotice(""), 4000)
+    const timer = setTimeout(() => {
+      setNotice("")
+      setNoticeType("error")
+    }, 4000)
     return () => clearTimeout(timer)
   }, [notice])
 
@@ -386,6 +394,32 @@ function IndexPopup() {
     chrome.runtime.openOptionsPage()
   }
 
+  const handleClipPage = async () => {
+    if (isClipping) return
+    setIsClipping(true)
+    try {
+      const response = (await sendToBackground({
+        name: "clipActiveTab",
+        body: {}
+      })) as { ok?: boolean; error?: string; fileName?: string } | undefined
+
+      if (response?.ok) {
+        setClipSuccess(true)
+        setNoticeType("success")
+        setNotice(i18n("clippedSuccess"))
+        setTimeout(() => setClipSuccess(false), 2500)
+      } else {
+        setNoticeType("error")
+        setNotice(response?.error ? `${i18n("clipError")}: ${response.error}` : i18n("clipError"))
+      }
+    } catch (err: unknown) {
+      setNoticeType("error")
+      setNotice(err instanceof Error ? `${i18n("clipError")}: ${err.message}` : i18n("clipError"))
+    } finally {
+      setIsClipping(false)
+    }
+  }
+
   const enabledCount = Object.values(enabledServices).filter(Boolean).length
   const serviceNames = {
     chatgpt: i18n("serviceNameChatGPT"),
@@ -437,13 +471,30 @@ function IndexPopup() {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleOpenOptions}
-          className="w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 flex items-center justify-center transition-colors"
-          title={i18n("settings")}
-        >
-          <GearSix className="w-4 h-4" weight="bold" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleClipPage}
+            disabled={isClipping}
+            className="w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 flex items-center justify-center transition-colors disabled:opacity-50"
+            title={i18n("clipToMarkdown")}
+          >
+            {isClipping ? (
+              <SpinnerGap className="w-4 h-4 animate-spin text-foreground" weight="bold" />
+            ) : clipSuccess ? (
+              <Check className="w-4 h-4 text-emerald-500" weight="bold" />
+            ) : (
+              <FileText className="w-4 h-4" weight="bold" />
+            )}
+          </button>
+          <button
+            onClick={handleOpenOptions}
+            className="w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 flex items-center justify-center transition-colors"
+            title={i18n("settings")}
+          >
+            <GearSix className="w-4 h-4" weight="bold" />
+          </button>
+        </div>
       </div>
 
       {/* Service badges */}
@@ -542,7 +593,11 @@ function IndexPopup() {
         {notice && (
           <p
             role="status"
-            className="mt-1.5 text-[10px] text-destructive leading-snug"
+            className={`mt-1.5 text-[10px] leading-snug ${
+              noticeType === "success"
+                ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                : "text-destructive"
+            }`}
           >
             {notice}
           </p>

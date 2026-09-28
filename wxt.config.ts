@@ -11,8 +11,21 @@ export default defineConfig({
       "storage",
       "tabs",
       "tabGroups",
-      "system.display"
+      "system.display",
+      "downloads",
+      "activeTab",
+      "scripting",
+      "contextMenus"
     ],
+    commands: {
+      "clip-to-markdown": {
+        suggested_key: {
+          default: "Alt+Shift+M",
+          mac: "Alt+Shift+M"
+        },
+        description: "Save active tab to Markdown (.md)"
+      }
+    },
     host_permissions: [
       "https://gemini.google.com/*",
       "https://chatgpt.com/*",

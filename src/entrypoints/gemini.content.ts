@@ -4,7 +4,6 @@ import {
   dispatchInputEvents,
   setContentEditableText,
   setNativeValue,
-  waitForElement,
   type ImagePayload
 } from "~/contents/lib/dom-helpers"
 import { createResponseCapture } from "~/contents/lib/response-observer"
@@ -148,11 +147,7 @@ const fillGeminiInput = async (
 ) => {
   setActiveSession(sessionId)
 
-  const editor =
-    (await waitForGeminiEditor()) ??
-    (await waitForElement<HTMLElement>(
-      ".ql-editor[contenteditable='true'], [contenteditable='true'], textarea"
-    ))
+  const editor = ((await waitForGeminiEditor()) as HTMLElement | null)
 
   if (!editor) {
     return

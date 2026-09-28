@@ -324,5 +324,21 @@
   "imageReadFailed": {
     "message": "部分圖片無法讀取，已略過",
     "description": "Warning when one or more images failed to load"
+  },
+  "clipToMarkdown": {
+    "message": "儲存為 Markdown (.md)",
+    "description": "Button to clip active tab content to Markdown file"
+  },
+  "clipping": {
+    "message": "正在儲存...",
+    "description": "Status when clipping is in progress"
+  },
+  "clippedSuccess": {
+    "message": "已成功儲存為 Markdown！",
+    "description": "Status when markdown file is successfully saved"
+  },
+  "clipError": {
+    "message": "儲存頁面失敗",
+    "description": "Status when clipping fails"
   }
 }

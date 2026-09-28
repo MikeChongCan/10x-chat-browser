@@ -1,23 +1,68 @@
-name: "Submit to Web Store"
+name: "Build, Release and Submit"
+
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  build-and-publish:
+    name: Build, Package and Publish Extension
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: oven-sh/setup-bun@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
       - name: Install dependencies
         run: bun install
-      - name: Build the extension
+
+      - name: Generate extension types
+        run: bunx wxt prepare
+
+      - name: Type check
+        run: bun run compile
+
+      - name: Run unit tests
+        run: bun run test
+
+      - name: Build extension
         run: bun run build
-      - name: Package the extension into a zip artifact
-        run: bun run package
-      - name: Browser Platform Publish
+
+      - name: Package extension artifact
+        id: package
+        run: |
+          bun run package
+          ZIP_PATH=$(ls .output/*-chrome.zip | head -n 1)
+          echo "zip_path=$ZIP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 10x-chat-browser-extension
+          path: ${{ steps.package.outputs.zip_path }}
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.zip_path }}
+          generate_release_notes: true
+
+      - name: Submit to Chrome Web Store
+        if: env.SUBMIT_KEYS != ''
         uses: PlasmoHQ/bpp@v3
         with:
           keys: ${{ secrets.SUBMIT_KEYS }}
-          artifact: build/chrome-mv3-prod.zip
+          artifact: ${{ steps.package.outputs.zip_path }}
+        env:
+          SUBMIT_KEYS: ${{ secrets.SUBMIT_KEYS }}

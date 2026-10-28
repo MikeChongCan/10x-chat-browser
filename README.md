@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **This repository has moved.** The extension now lives in the 10x-chat monorepo at
+> [`apps/chrome-extension`](https://github.com/MikeChongCan/10x-chat/tree/main/apps/chrome-extension),
+> with its full git history. Open issues and pull requests there. This repository is archived.
+
 <div align="center">
 
 # 10xWise: Multi-AI Chat
